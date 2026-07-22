@@ -1,0 +1,27 @@
+project_id = "inst-tracker"
+
+[api]
+enabled = true
+port = 54321
+
+[db]
+port = 54322
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173/auth/callback"]
+
+# We never send a real magic-link email -- exchange-instagram-code generates
+# one server-side purely to mint a session token hash. Keep this off so no
+# stray email attempts happen locally.
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+
+[functions]
+enabled = true

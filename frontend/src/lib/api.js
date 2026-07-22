@@ -1,19 +1,18 @@
-import { httpsCallable } from 'firebase/functions';
-import { functions } from '../firebase.js';
+import { supabase } from '../supabase.js';
 
-// Each of these maps to an exported function in /functions/index.js.
-// See that file for what each one actually does against the Instagram Graph API.
+// Each of these maps to a folder under /supabase/functions.
+// supabase.functions.invoke() automatically attaches the signed-in user's
+// JWT as the Authorization header.
 
-export const refreshInsights = () => httpsCallable(functions, 'refreshInsights')();
+export const refreshInsights = () => supabase.functions.invoke('refresh-insights');
 
 export const suggestCaption = (topic) =>
-  httpsCallable(functions, 'suggestCaption')({ topic });
+  supabase.functions.invoke('suggest-caption', { body: { topic } });
 
 export const suggestHashtags = (topic) =>
-  httpsCallable(functions, 'suggestHashtags')({ topic });
+  supabase.functions.invoke('suggest-hashtags', { body: { topic } });
 
-export const disconnectInstagram = () =>
-  httpsCallable(functions, 'disconnectInstagram')();
+export const disconnectInstagram = () => supabase.functions.invoke('disconnect-instagram');
 
 export function buildInstagramConnectUrl() {
   const appId = import.meta.env.VITE_META_APP_ID;

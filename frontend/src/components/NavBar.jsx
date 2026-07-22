@@ -30,7 +30,7 @@ export default function NavBar() {
         </NavLink>
       ))}
       <div className="nav-footer">
-        {profile?.igUsername ? `@${profile.igUsername}` : 'Not connected'}
+        {profile?.ig_username ? `@${profile.ig_username}` : 'Not connected'}
       </div>
     </nav>
   );

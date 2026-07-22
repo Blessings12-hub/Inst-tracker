@@ -12,10 +12,10 @@ export default function Settings() {
       <div className="card card-pad" style={{ marginBottom: 16 }}>
         <h3 style={{ marginBottom: 14 }}>Connected Instagram account</h3>
         <div className="row-item" style={{ borderTop: 'none', padding: '0 0 14px' }}>
-          <div className="row-avatar">{profile?.igUsername?.[0]?.toUpperCase() ?? '?'}</div>
+          <div className="row-avatar">{profile?.ig_username?.[0]?.toUpperCase() ?? '?'}</div>
           <div className="row-main">
-            <div className="row-name">@{profile?.igUsername ?? 'unknown'}</div>
-            <div className="row-sub">{profile?.igAccountType ?? 'Business'} account</div>
+            <div className="row-name">@{profile?.ig_username ?? 'unknown'}</div>
+            <div className="row-sub">{profile?.ig_account_type ?? 'Business'} account</div>
           </div>
           <span className="badge badge-teal">Connected</span>
         </div>

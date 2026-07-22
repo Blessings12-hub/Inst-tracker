@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { signInWithCustomToken } from 'firebase/auth';
-import { httpsCallable } from 'firebase/functions';
-import { auth, functions } from '../firebase.js';
+import { supabase } from '../supabase.js';
 
 export default function AuthCallback() {
   const [params] = useSearchParams();
@@ -16,11 +14,23 @@ export default function AuthCallback() {
       return;
     }
 
-    const exchange = httpsCallable(functions, 'exchangeInstagramCode');
-    exchange({ code, redirectUri: import.meta.env.VITE_META_OAUTH_REDIRECT_URI })
-      .then(({ data }) => signInWithCustomToken(auth, data.firebaseToken))
-      .then(() => navigate('/', { replace: true }))
-      .catch((err) => setError(err.message ?? 'Something went wrong connecting your account.'));
+    async function run() {
+      const { data, error: fnError } = await supabase.functions.invoke('exchange-instagram-code', {
+        body: { code, redirectUri: import.meta.env.VITE_META_OAUTH_REDIRECT_URI },
+      });
+      if (fnError) throw fnError;
+
+      const { error: otpError } = await supabase.auth.verifyOtp({
+        email: data.email,
+        token: data.tokenHash,
+        type: 'magiclink',
+      });
+      if (otpError) throw otpError;
+
+      navigate('/', { replace: true });
+    }
+
+    run().catch((err) => setError(err.message ?? 'Something went wrong connecting your account.'));
   }, [params, navigate]);
 
   return (

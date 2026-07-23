@@ -1,9 +1,14 @@
 import { handleOptions, json } from '../_shared/cors.ts';
 import { supabaseAdmin } from '../_shared/supabaseAdmin.ts';
-import { exchangeCodeForToken, getLongLivedToken, getIgProfile } from '../_shared/instagram.ts';
+import {
+  exchangeCodeForToken,
+  getLongLivedToken,
+  getInstagramAccountFromPages,
+  getIgProfile,
+} from '../_shared/instagram.ts';
 
-const INSTAGRAM_APP_ID = Deno.env.get('INSTAGRAM_APP_ID')!;
-const INSTAGRAM_APP_SECRET = Deno.env.get('INSTAGRAM_APP_SECRET')!;
+const META_APP_ID = Deno.env.get('META_APP_ID')!;
+const META_APP_SECRET = Deno.env.get('META_APP_SECRET')!;
 
 Deno.serve(async (req) => {
   const preflight = handleOptions(req);
@@ -16,16 +21,17 @@ Deno.serve(async (req) => {
     const shortLivedToken = await exchangeCodeForToken({
       code,
       redirectUri,
-      appId: INSTAGRAM_APP_ID,
-      appSecret: INSTAGRAM_APP_SECRET,
+      appId: META_APP_ID,
+      appSecret: META_APP_SECRET,
     });
     const longLivedToken = await getLongLivedToken({
       shortLivedToken,
-      appSecret: INSTAGRAM_APP_SECRET,
+      appId: META_APP_ID,
+      appSecret: META_APP_SECRET,
     });
 
-    const profile = await getIgProfile(longLivedToken);
-    const igUserId = profile.user_id as string;
+    const { igUserId, pageId } = await getInstagramAccountFromPages(longLivedToken);
+    const profile = await getIgProfile(igUserId, longLivedToken);
 
     const admin = supabaseAdmin();
     const email = `ig-${igUserId}@users.insttracker.app`;
@@ -52,7 +58,8 @@ Deno.serve(async (req) => {
       id: uid,
       ig_user_id: igUserId,
       ig_username: profile.username,
-      ig_account_type: profile.account_type ?? 'Business',
+      ig_account_type: 'Business',
+      page_id: pageId,
       followers_count: profile.followers_count,
       follows_count: profile.follows_count,
       instagram_connected: true,

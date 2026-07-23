@@ -1,33 +1,43 @@
-const GRAPH = 'https://graph.facebook.com/v22.0';
+const GRAPH = 'https://graph.instagram.com/v22.0';
 
+/**
+ * Step 1 of Instagram's own OAuth flow (not Facebook's): exchange the
+ * ?code= from the redirect for a short-lived token.
+ * Note: Instagram sometimes appends "#_" to the code param -- strip it.
+ */
 export async function exchangeCodeForToken(opts: {
   code: string;
   redirectUri: string;
   appId: string;
   appSecret: string;
 }): Promise<string> {
-  const url = new URL(`${GRAPH}/oauth/access_token`);
-  url.searchParams.set('client_id', opts.appId);
-  url.searchParams.set('client_secret', opts.appSecret);
-  url.searchParams.set('redirect_uri', opts.redirectUri);
-  url.searchParams.set('code', opts.code);
+  const cleanCode = opts.code.replace(/#_$/, '');
 
-  const res = await fetch(url.toString());
+  const form = new URLSearchParams();
+  form.set('client_id', opts.appId);
+  form.set('client_secret', opts.appSecret);
+  form.set('grant_type', 'authorization_code');
+  form.set('redirect_uri', opts.redirectUri);
+  form.set('code', cleanCode);
+
+  const res = await fetch('https://api.instagram.com/oauth/access_token', {
+    method: 'POST',
+    body: form,
+  });
   const data = await res.json();
-  if (data.error) throw new Error(data.error.message);
-  return data.access_token as string;
+  if (data.error_message) throw new Error(data.error_message);
+  return data.access_token as string; // short-lived
 }
 
+/** Step 2: exchange the short-lived token for a long-lived one (~60 days). */
 export async function getLongLivedToken(opts: {
   shortLivedToken: string;
-  appId: string;
   appSecret: string;
 }): Promise<string> {
-  const url = new URL(`${GRAPH}/oauth/access_token`);
-  url.searchParams.set('grant_type', 'fb_exchange_token');
-  url.searchParams.set('client_id', opts.appId);
+  const url = new URL('https://graph.instagram.com/access_token');
+  url.searchParams.set('grant_type', 'ig_exchange_token');
   url.searchParams.set('client_secret', opts.appSecret);
-  url.searchParams.set('fb_exchange_token', opts.shortLivedToken);
+  url.searchParams.set('access_token', opts.shortLivedToken);
 
   const res = await fetch(url.toString());
   const data = await res.json();
@@ -35,30 +45,13 @@ export async function getLongLivedToken(opts: {
   return data.access_token as string;
 }
 
-export async function getInstagramAccountFromPages(accessToken: string) {
+/**
+ * The Instagram user id + profile come straight from /me -- no Facebook
+ * Page lookup needed at all with this login path.
+ */
+export async function getIgProfile(accessToken: string) {
   const res = await fetch(
-    `${GRAPH}/me/accounts?fields=id,name,instagram_business_account&access_token=${accessToken}`
-  );
-  const data = await res.json();
-  if (data.error) throw new Error(data.error.message);
-
-  const pageWithIg = (data.data || []).find((p: any) => p.instagram_business_account);
-  if (!pageWithIg) {
-    throw new Error(
-      'No Instagram Business/Creator account found on any of your Facebook Pages.'
-    );
-  }
-
-  return {
-    igUserId: pageWithIg.instagram_business_account.id as string,
-    pageId: pageWithIg.id as string,
-    pageName: pageWithIg.name as string,
-  };
-}
-
-export async function getIgProfile(igUserId: string, accessToken: string) {
-  const res = await fetch(
-    `${GRAPH}/${igUserId}?fields=username,name,profile_picture_url,followers_count,follows_count,media_count&access_token=${accessToken}`
+    `${GRAPH}/me?fields=user_id,username,account_type,followers_count,follows_count,media_count&access_token=${accessToken}`
   );
   const data = await res.json();
   if (data.error) throw new Error(data.error.message);

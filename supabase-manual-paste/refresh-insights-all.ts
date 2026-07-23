@@ -1,6 +1,5 @@
 // Paste into Supabase Dashboard -> Edge Functions -> Deploy a new function ->
-// Via Editor -> name it "refresh-insights-all". Triggered daily by pg_cron
-// (see the cron SQL in the setup instructions) -- not meant to be called by users.
+// Via Editor -> name it "refresh-insights-all". Triggered daily by pg_cron.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -15,7 +14,7 @@ function json(body: unknown, status = 200) {
   });
 }
 
-const GRAPH = 'https://graph.facebook.com/v22.0';
+const GRAPH = 'https://graph.instagram.com/v22.0';
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 async function refreshOne(admin: ReturnType<typeof createClient>, uid: string) {

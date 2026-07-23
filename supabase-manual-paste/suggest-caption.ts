@@ -1,5 +1,5 @@
 // Paste into Supabase Dashboard -> Edge Functions -> Deploy a new function ->
-// Via Editor -> name it "suggest-caption".
+// Via Editor -> name it "suggest-caption". Uses Google's free-tier Gemini API.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -33,27 +33,29 @@ Deno.serve(async (req) => {
   if (!topic) return json({ error: 'Missing topic.' }, 400);
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': Deno.env.get('ANTHROPIC_API_KEY')!,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 300,
-        messages: [
-          {
-            role: 'user',
-            content: `Write one short, natural Instagram caption (max 2 sentences, no hashtags) for a post about: ${topic}. Return only the caption text, nothing else.`,
-          },
-        ],
-      }),
-    });
+    const geminiKey = Deno.env.get('GEMINI_API_KEY')!;
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: `Write one short, natural Instagram caption (max 2 sentences, no hashtags) for a post about: ${topic}. Return only the caption text, nothing else.`,
+                },
+              ],
+            },
+          ],
+        }),
+      }
+    );
     const data = await res.json();
     if (data.error) throw new Error(data.error.message);
-    return json({ caption: (data.content?.[0]?.text ?? '').trim() });
+    const caption = (data.candidates?.[0]?.content?.parts?.[0]?.text ?? '').trim();
+    return json({ caption });
   } catch (err) {
     return json({ error: err.message ?? 'Unknown error' }, 500);
   }

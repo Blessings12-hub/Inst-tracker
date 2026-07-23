@@ -1,4 +1,4 @@
-import SignalLine from '../components/SignalLine.jsx';
+import logo from '../assets/logo.png';
 import { buildInstagramConnectUrl } from '../lib/api.js';
 
 const SCOPES = [
@@ -13,7 +13,7 @@ export default function Login() {
   return (
     <div className="login-screen">
       <div className="card login-card">
-        <SignalLine values={[2, 6, 4, 9, 6, 12, 8, 15]} width={90} height={26} />
+        <img src={logo} alt="inst-tracker" width={72} height={72} style={{ borderRadius: 18 }} />
         <h1>Connect your Instagram</h1>
         <p>
           inst-tracker reads insights Instagram's own app doesn't surface clearly —

@@ -14,7 +14,7 @@ function json(body: unknown, status = 200) {
   });
 }
 
-const GRAPH = 'https://graph.instagram.com/v22.0';
+const GRAPH = 'https://graph.facebook.com/v25.0';
 
 async function getUid(req: Request): Promise<string | null> {
   const authHeader = req.headers.get('Authorization');

@@ -14,7 +14,7 @@ function json(body: unknown, status = 200) {
   });
 }
 
-const GRAPH = 'https://graph.instagram.com/v22.0';
+const GRAPH = 'https://graph.facebook.com/v25.0';
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 async function refreshOne(admin: ReturnType<typeof createClient>, uid: string) {

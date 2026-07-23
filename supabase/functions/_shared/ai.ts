@@ -1,26 +1,22 @@
-const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')!;
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')!;
+const GEMINI_URL =
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
-async function callClaude(prompt: string): Promise<string> {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+async function callGemini(prompt: string): Promise<string> {
+  const res = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 300,
-      messages: [{ role: 'user', content: prompt }],
+      contents: [{ parts: [{ text: prompt }] }],
     }),
   });
   const data = await res.json();
   if (data.error) throw new Error(data.error.message);
-  return data.content?.[0]?.text ?? '';
+  return data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
 }
 
 export async function suggestCaption(topic: string): Promise<string> {
-  const text = await callClaude(
+  const text = await callGemini(
     `Write one short, natural Instagram caption (max 2 sentences, no hashtags) for a post about: ${topic}. ` +
       `Return only the caption text, nothing else.`
   );
@@ -28,7 +24,7 @@ export async function suggestCaption(topic: string): Promise<string> {
 }
 
 export async function suggestHashtags(topic: string): Promise<string[]> {
-  const text = await callClaude(
+  const text = await callGemini(
     `Suggest 8 niche, relevant Instagram hashtags (no # symbol, lowercase, no spaces) for a post about: ${topic}. ` +
       `Return only a comma-separated list, nothing else.`
   );

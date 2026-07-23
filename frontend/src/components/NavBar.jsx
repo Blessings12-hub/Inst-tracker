@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import SignalLine from './SignalLine.jsx';
+import logo from '../assets/logo.png';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const LINKS = [
@@ -16,7 +16,7 @@ export default function NavBar() {
   return (
     <nav className="nav">
       <div className="nav-brand">
-        <SignalLine values={[3, 8, 5, 11, 7, 14, 9]} width={30} height={18} color="#ff5c7a" />
+        <img src={logo} alt="inst-tracker" width={26} height={26} style={{ borderRadius: 7 }} />
         inst-tracker
       </div>
       {LINKS.map((link) => (
